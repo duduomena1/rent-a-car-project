@@ -1,11 +1,9 @@
-<<<<<<< HEAD
 const express = require('express');
 const cors = require('cors');
 const { ServiceBusClient } = require('@azure/service-bus');
 require('dotenv').config();
 const app = express();
 
-// Middleware configuration
 app.use(express.json());
 app.use(cors());
 
@@ -73,42 +71,3 @@ app.post('/api/rent', async (req, res) => {
 app.listen(process.env.PORT || 3000, () => {
     console.log(`Server is running on port ${process.env.PORT || 3000}`);
 });
-=======
-const express = require('express');
-const cors = require('cors');
-const {DefaultAzureCredential} = require('@azure/identity');
-const { ServiceBusClient } = require('@azure/service-bus');
-require('dotenv').config();
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-app.post('/api/locacao', async (req, res) => {
-    const {name, email} = req.body;
-    const connectionString = process.env.AZURE_SERVICE_BUS_CONNECTION_STRING;
-    const vehicle = {
-        model: "fusca",
-        year: 1970,
-        rentTime: "3 weeks"
-,
-    };
-
-    const message = {
-        name,
-        email,
-        vehicle,
-        date: new Date().toISOString(),
-
-    };
-
-    try{
-
-        const credential = new DefaultAzureCredential();
-        const serviceBusConnection = connectionString;
-        const queueName = process.env.AZURE_SERVICE_BUS_QUEUE_NAME; 
-    }catch (error) {
-        console.error('Error sending message:', error);
-        return res.status(500).json({ error: 'Failed to send message' });
-    }
-})
->>>>>>> f158589 (first commit)
