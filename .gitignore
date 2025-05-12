@@ -1,8 +1,7 @@
-<<<<<<< HEAD
+
 node_modules
 .vscode
 .DS_Store   
 .env
-=======
-node_modules
->>>>>>> f158589 (first commit)
+
+credentials.ps1
