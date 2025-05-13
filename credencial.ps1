@@ -1,0 +1,9 @@
+$acrName = 
+$image =
+$acrName.azurecr.io =
+$image =
+$version =
+$containerName =
+$resourceGroupName =
+$location =
+$port = 
