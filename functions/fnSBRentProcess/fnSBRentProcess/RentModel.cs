@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace fnSBRentProcess
 {
-    internal class RentModel
+    public class RentModel
     {
 
             public string Name { get; set; }

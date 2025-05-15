@@ -24,6 +24,7 @@ public class RentProcessFunction
         ServiceBusReceivedMessage message,
         ServiceBusMessageActions messageActions)
     {
+
         _logger.LogInformation("Message ID: {id}", message.MessageId);
         var body = message.Body.ToString();
         _logger.LogInformation("Message Body: {body}", body);
@@ -57,16 +58,43 @@ public class RentProcessFunction
             command.Parameters.AddWithValue("@RentTime", rentModel.RentTime);
             command.Parameters.AddWithValue("@Date", rentModel.Date);
 
-            var rowsAffected = await command.ExecuteNonQueryAsync();
 
+            
+            var serviceBusConnection = _configuration.GetSection("ServiceBusConnection").Value.ToString();
+            var serviceBusQueue = _configuration.GetSection("ServiceBusQueue").Value.ToString();
+
+            sendMessageToPay(serviceBusConnection, serviceBusQueue, rentModel);
+
+
+            var rowsAffected = await command.ExecuteNonQueryAsync();
+            
             await messageActions.CompleteMessageAsync(message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deserializing message body: {body}", body);
-            await messageActions.DeadLetterMessageAsync(message, null, "Failed to deserialize message body.");
+            await messageActions.DeadLetterMessageAsync(message, null, $"Failed to deserialize message body:{ex.Message}");
             return;
         }
+
+    }
+
+    private void sendMessageToPay(string serviceBusConnection, string serviceBusQueue, RentModel rentModel)
+    {
+        ServiceBusClient serviceBusClient = new ServiceBusClient(serviceBusConnection);
+        ServiceBusSender serviceBusSender = serviceBusClient.CreateSender(serviceBusQueue);
+        ServiceBusMessage message = new ServiceBusMessage(JsonSerializer.Serialize(rentModel)); 
+        message.ContentType = "application/json";
+        message.ApplicationProperties.Add("Tipo", "Payment");
+        message.ApplicationProperties.Add("Name", rentModel.Name);
+        message.ApplicationProperties.Add("Mail", rentModel.Mail);
+        message.ApplicationProperties.Add("Model", rentModel.Model);
+        message.ApplicationProperties.Add("Year", rentModel.Year.ToString());
+        message.ApplicationProperties.Add("RentTime", rentModel.RentTime);
+        message.ApplicationProperties.Add("Date", rentModel.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"));
+
+        serviceBusSender.SendMessageAsync(message).Wait();
+        serviceBusSender.DisposeAsync();
 
     }
 }
